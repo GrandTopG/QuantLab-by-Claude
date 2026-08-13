@@ -114,6 +114,7 @@ Commits:
 3. `feat: generación automática de reporte PDF (tear sheet)`
 4. `feat: página de "portafolio de estrategias" con métricas agregadas`
 5. `docs: reporte de ejemplo en /reports`
+6. `feat: sistema de notificaciones (correo/Telegram) cuando se detecta una señal — modo "solo aviso" para operar manual`
 
 ---
 
@@ -129,6 +130,56 @@ Commits:
 4. `feat: primer modelo predictivo experimental (clasificación de dirección)`
 5. `docs: research_log/004_primer_experimento_ML.md`
 
+### Ampliación: Portafolio de Estrategias (no una sola estrategia final)
+
+QuantLab no busca UNA estrategia perfecta — busca construir un portafolio
+de varias estrategias validadas independientemente, con lógicas de
+ventaja distintas entre sí (tendencia, reversión a la media, sistema
+H1/M15 cuantificado, fundamentales/macro), cada una operando de forma
+independiente con capital asignado, para lograr un resultado combinado
+más estable y menos volátil que cualquier estrategia individual.
+
+**Principio de diseño clave:** las estrategias técnicas y las
+fundamentales se mantienen como entradas SEPARADAS del portafolio, no
+mezcladas dentro de una sola estrategia híbrida — esto preserva su
+independencia real y facilita el diagnóstico si alguna deja de
+funcionar. Una variable fundamental puede usarse como *filtro de riesgo*
+dentro de una estrategia técnica (ej. no operar en días de anuncio de la
+Fed), pero eso es distinto a fusionar fuentes de ventaja dentro de una
+misma señal.
+
+Commits sugeridos:
+1. `feat: framework para correr múltiples estrategias en paralelo`
+2. `feat: cálculo de correlación entre estrategias del portafolio`
+3. `feat: asignación de capital entre estrategias (equal weight → risk parity)`
+4. `docs: research_log de cada estrategia individual antes de combinarla al portafolio`
+
+### Ampliación: Estrategia basada en fundamentales cuantificados ("quantamental")
+
+Como una entrada más del portafolio (separada de las estrategias
+técnicas, ver principio de diseño arriba), incorporar una o más
+estrategias que usen variables macro/fundamentales como input
+cuantificado — dado que el oro está particularmente influenciado por
+estos factores:
+
+- Calendario de decisiones de tasas de la Fed como variable de evento
+- DXY (índice del dólar) como filtro de contexto — correlación inversa
+  histórica con el oro
+- Datos de inflación (CPI) como variable macro
+- Datos COT (Commitment of Traders) como filtro de posicionamiento
+  institucional
+
+Fuentes: yfinance (DXY), FRED (Reserva Federal, datos macro gratuitos),
+CFTC (reportes COT semanales). Se integra al mismo motor de backtesting
+ya construido en Fase 2 — solo cambia cómo se genera la columna "Señal"
+y qué datos adicionales se usan como input.
+
+Commits sugeridos:
+1. `feat: pipeline de descarga de datos macro (DXY, CPI, tasas Fed)`
+2. `feat: pipeline de descarga de datos COT`
+3. `feat: estrategia fundamental independiente (no combinada con la técnica)`
+4. `docs: research_log validando la lógica fundamental de esta estrategia`
+
 ---
 
 ## FASE 7 — Institucionalización (para atraer capital)
@@ -139,6 +190,26 @@ Commits:
 2. `feat: sistema de logging de todas las decisiones/cambios de estrategia`
 3. `docs: memorándum de estrategia (metodología documentada)`
 4. `feat: exportar histórico completo auditable (CSV/PDF firmado con fecha)`
+
+## Requisito de diseño: Modo Manual vs Automático
+
+El sistema debe tener un interruptor claro entre dos modos de operación:
+- **Modo Manual (notificación):** detecta la señal según las reglas de la
+  estrategia, y notifica al usuario (correo/Telegram/app) con entrada, SL,
+  TP sugeridos — la ejecución de la orden la hace la persona, a mano.
+- **Modo Automático (ejecución):** además de detectar la señal, envía la
+  orden directamente al broker vía su API, sin intervención manual.
+
+La lógica de detección de señal es la MISMA para ambos modos — lo único
+que cambia es el paso final (avisar vs ejecutar). El modo automático solo
+se activa después de tener validación estadística sólida de la estrategia
+(Fase 3-4 completas) y track record documentado — es la decisión de mayor
+riesgo de todo el proyecto, se implementa al final, no al principio.
+
+Commits sugeridos:
+1. `feat: capa de ejecución con interruptor modo manual/automático`
+2. `feat: integración API de broker para modo automático`
+3. `docs: protocolo de decisión para activar modo automático (checklist de validación previa)`
 
 ---
 

@@ -4,6 +4,7 @@ venv/
 # Archivos temporales de Python
 __pycache__/
 *.pyc
+*.pyc
 
 # Jupyter
 .ipynb_checkpoints/
